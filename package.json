@@ -9,5 +9,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@9.9.0"
+  "packageManager": "pnpm@9.9.0",
+  "dependencies": {
+    "@azure/storage-blob": "^12.24.0",
+    "@google-cloud/storage": "^7.12.1",
+    "aws-sdk": "^2.1691.0"
+  }
 }
