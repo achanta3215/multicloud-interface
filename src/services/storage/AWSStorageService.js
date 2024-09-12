@@ -1,5 +1,6 @@
 const ObjectStorage = require('./StorageInterface');
 const AwsService = require('../../binders/AwsService');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
 
 class AwsStorageService extends ObjectStorage {
   /**
@@ -17,7 +18,7 @@ class AwsStorageService extends ObjectStorage {
     }
     super();
     this.bucketName = bucketName;
-    this.s3 = new AwsClient().getS3Instance();
+    this.s3 = new AwsService().getS3Instance();
     AwsStorageService.instances.set(bucketName, this);
   }
 
@@ -40,16 +41,16 @@ class AwsStorageService extends ObjectStorage {
       Key: filePath,
       Body: fileContent,
     };
-    const data = await this.s3.upload(params).promise();
-    return data.Location;
+    const command = new PutObjectCommand(params)
+    await this.s3.send(command);
   }
-
+ 
   async retrieve(filePath) {
     const params = {
       Bucket: this.bucketName,
       Key: filePath,
     };
-    const data = await this.s3.getObject(params).promise();
+    const data = await this.s3.getObject(params);
     return data.Body;
   }
 
@@ -58,12 +59,12 @@ class AwsStorageService extends ObjectStorage {
       Bucket: this.bucketName,
       Key: filePath,
     };
-    await this.s3.deleteObject(params).promise();
+    await this.s3.deleteObject(params);
   }
 
   async replace(filePath, fileContent) {
     await this.delete(filePath);
-    return this.upload(filePath, fileContent);
+    await this.upload(filePath, fileContent);
   }
 }
 

@@ -19,12 +19,7 @@ class CloudClient {
 
   constructor(clientType) {
     this.clientType = clientType;
-    CloudClient.instances[clientType]["new"] = this;
-  }
-
-  getService(serviceType) {
-    const client = this.createClient();
-    return this.createService(client, serviceType);
+    CloudClient.instances[clientType] = { "new": this };
   }
 
   /**
@@ -33,7 +28,7 @@ class CloudClient {
    * @returns
    */
   static getClient(clientType) {
-    if (CloudClient.instances[clientType]["new"]) {
+    if (CloudClient.instances[clientType] && CloudClient.instances[clientType]["new"]) {
       throw new Error("Client Already triggered");
     }
     const client = new CloudClient(clientType);
@@ -43,11 +38,14 @@ class CloudClient {
   /**
    * Creates an instance of the Cloud Client service based on the provided client name.
    * @param {keyof CloudClient.Services} serviceType
+   * @param {string} bucketName
    * @returns
    */
-  service(serviceType) {
-    if (serviceType === 'ObjectStorage') {
-      return StorageClient.create(this.clientType, this.bucketName);
+  service(serviceType, bucketName) {
+    if (serviceType === CloudClient.Services.ObjectStorage) {
+      CloudClient.instances[this.clientType] = { [serviceType]: this };
+      delete CloudClient.instances[this.clientType]["new"];
+      return StorageClient.create(this.clientType, bucketName);
     }
     throw new Error('Unsupported service');
   }
