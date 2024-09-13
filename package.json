@@ -1,18 +1,24 @@
 {
   "name": "multicloud-interface",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Interface to multicloud services in NodeJS",
   "main": "src/index.js",
   "scripts": {
     "test": "jest"
   },
-  "keywords": ["s3", "multicloud", "aws", "minio"],
+  "keywords": [
+    "s3",
+    "multicloud",
+    "aws",
+    "minio"
+  ],
   "author": "Achanta Krishna Sameer <achanta3215@gmail.com>",
   "license": "MIT",
   "packageManager": "pnpm@9.9.0",
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.650.0",
     "@aws-sdk/client-s3": "^3.650.0",
+    "@aws-sdk/s3-request-presigner": "^3.651.0",
     "@azure/storage-blob": "^12.24.0",
     "@google-cloud/storage": "^7.12.1"
   },

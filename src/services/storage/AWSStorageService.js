@@ -1,6 +1,7 @@
 const ObjectStorage = require('./StorageInterface');
 const AwsService = require('../../binders/AwsService');
-const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const { PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 class AwsStorageService extends ObjectStorage {
   /**
@@ -50,8 +51,9 @@ class AwsStorageService extends ObjectStorage {
       Bucket: this.bucketName,
       Key: filePath,
     };
-    const data = await this.s3.getObject(params);
-    return data.Body.transformToString();
+    const command = new GetObjectCommand(params);
+    const url = await getSignedUrl(this.s3, command, { expiresIn: 3600 }); // URL valid for 1 hour
+    return url;
   }
 
   async delete(filePath) {
