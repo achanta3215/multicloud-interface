@@ -51,7 +51,7 @@ describe('CloudClient AWS S3 Operations', () => {
       Bucket: 'test-bucket',
       Key: 'test-file.txt',
     });
-    const str = await result.transformToString();
+    const str = await result;
     expect(str).toBe('file content');
   });
 

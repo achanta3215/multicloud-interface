@@ -51,7 +51,7 @@ class AwsStorageService extends ObjectStorage {
       Key: filePath,
     };
     const data = await this.s3.getObject(params);
-    return data.Body;
+    return data.Body.transformToString();
   }
 
   async delete(filePath) {
