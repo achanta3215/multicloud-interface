@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest"
   },
-  "keywords": [],
+  "keywords": ["s3", "multicloud", "aws", "minio"],
   "author": "Achanta Krishna Sameer <achanta3215@gmail.com>",
   "license": "MIT",
   "packageManager": "pnpm@9.9.0",
