@@ -1,7 +1,7 @@
 {
   "name": "multicloud-storage",
   "version": "0.0.1",
-  "description": "",
+  "description": "Interface to multicloud services in NodeJS",
   "main": "src/index.js",
   "scripts": {
     "test": "jest"
