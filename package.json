@@ -1,5 +1,5 @@
 {
-  "name": "multicloud-storage",
+  "name": "multicloud-interface",
   "version": "0.0.1",
   "description": "Interface to multicloud services in NodeJS",
   "main": "src/index.js",
