@@ -1,54 +1,136 @@
 const StorageClient = require("../services/storage/StorageClient");
+const StorageInterface = require("../services/storage/StorageInterface");
 
+/**
+ * CloudClient class representing cloud providers.
+ */
 class CloudClient {
-  static Clients = {
-    AZURE: 'azure',
-    AWS: 'aws',
-    GCP: 'gcp',
-  };
-
-  static Services = {
-    ObjectStorage: 'objectStorage',
-  };
-
   /**
-   * Map to hold instances of CloudClient keyed by `clientType` and `service`.
-   * @type {Map<string, Map<string, CloudClient>}
+   * @param {keyof typeof CloudClient.CloudClients} clientType - The cloud client type (e.g., 'AZURE', 'AWS').
    */
-  static instances = new Map();
-
   constructor(clientType) {
     this.clientType = clientType;
-    CloudClient.instances[clientType] = { "new": this };
   }
 
   /**
-   * Creates an instance of the Cloud Client service based on the provided client name.
-   * @param {keyof CloudClient.Clients} clientType
-   * @returns
+   * Cloud client types.
+   * @type {{ AZURE: 'AZURE', AWS: 'AWS', GCP: 'GCP', MINIO: 'MINIO' }}
    */
-  static getClient(clientType) {
-    if (CloudClient.instances[clientType] && CloudClient.instances[clientType]["new"]) {
-      throw new Error("Client Already triggered");
-    }
-    const client = new CloudClient(clientType);
-    return client;
+  static CloudClients = {
+    AZURE: 'AZURE',
+    AWS: 'AWS',
+    GCP: 'GCP',
+    MINIO: 'MINIO',
+  };
+
+  /**
+   * Cloud services types.
+   * @type {{ ObjectStorage: 'ObjectStorage' }}
+   */
+  static Services = {
+    ObjectStorage: 'ObjectStorage',
+  };
+}
+
+/**
+ * Builder class for creating CloudClient instances and managing StorageClient instances.
+ */
+class Builder {
+  constructor() {
+    /**
+     * @typedef {Object} BuilderProperties
+     * @property {keyof typeof CloudClient.CloudClients} [clientType] - The cloud client type.
+     * @property {keyof typeof CloudClient.Services} [serviceType] - The cloud service type.
+     * @property {string} [bucketName] - The bucket name.
+     */
+    /** @type {BuilderProperties} */
+    this.properties = {};
   }
 
   /**
-   * Creates an instance of the Cloud Client service based on the provided client name.
-   * @param {keyof CloudClient.Services} serviceType
-   * @param {string} bucketName
-   * @returns
+   * Sets the cloud client type.
+   * @param {keyof typeof CloudClient.CloudClients} clientType - The client type (e.g., 'AZURE', 'AWS', 'GCP').
+   * @returns {Builder} - Returns the Builder instance for chaining.
    */
-  service(serviceType, bucketName) {
-    if (serviceType === CloudClient.Services.ObjectStorage) {
-      CloudClient.instances[this.clientType] = { [serviceType]: this };
-      delete CloudClient.instances[this.clientType]["new"];
-      return StorageClient.create(this.clientType, bucketName);
+  setClient(clientType) {
+    if (!(clientType in CloudClient.CloudClients)) {
+      throw new Error(`Invalid client type: ${clientType}`);
     }
-    throw new Error('Unsupported service');
+    this.properties.clientType = clientType;
+    return this;
+  }
+
+  /**
+   * Sets the cloud service type.
+   * @param {keyof typeof CloudClient.Services} serviceType - The service type (e.g., 'ObjectStorage').
+   * @returns {Builder} - Returns the Builder instance for chaining.
+   */
+  setService(serviceType) {
+    if (!(serviceType in CloudClient.Services)) {
+      throw new Error(`Unsupported service type: ${serviceType}`);
+    }
+    this.properties.serviceType = serviceType;
+    return this;
+  }
+
+  /**
+   * Sets the bucket name for object storage.
+   * @param {string} bucketName - The bucket name.
+   * @returns {Builder} - Returns the Builder instance for chaining.
+   */
+  setBucket(bucketName) {
+    this.properties.bucketName = bucketName;
+    return this;
+  }
+
+  /**
+   * Generates a unique key based on the properties of the builder.
+   * @returns {string} - The unique key used for instance storage.
+   */
+  generateKey() {
+    const keyParts = Object.entries(this.properties)
+      .filter(([_, value]) => value !== undefined)
+      .sort(([aKey], [bKey]) => aKey.localeCompare(bKey))
+      .map(([key, value]) => `${key}:${value}`)
+      .join('|');
+    return keyParts;
+  }
+
+  /**
+   * Map to store created StorageInterface instances.
+   * @type {Map<string, StorageInterface>}
+   */
+  static instanceRegistry = new Map();
+
+  /**
+   * Builds and returns a StorageInterface instance. If an instance already exists, it returns the cached one.
+   * @returns {StorageInterface} - Returns the StorageInterface instance.
+   * @throws {Error} - Throws an error if required properties are missing.
+   */
+  build() {
+    if (!this.properties.clientType || !this.properties.serviceType) {
+      throw new Error("Client type and service type must be specified");
+    }
+
+    const instanceKey = this.generateKey();
+
+    // Return the existing instance if found
+    if (Builder.instanceRegistry.has(instanceKey)) {      
+      // @ts-ignore
+      return Builder.instanceRegistry.get(instanceKey);
+    }
+
+    // Create a new instance and store it in the registry
+    if (this.properties.serviceType === CloudClient.Services.ObjectStorage && this.properties.bucketName) {
+      const newClient = StorageClient.create(this.properties.clientType, this.properties.bucketName);
+      Builder.instanceRegistry.set(instanceKey, newClient);
+      return newClient;
+    }
+
+    throw new Error("Bucket name must be specified for ObjectStorage service");
   }
 }
 
-module.exports = CloudClient;
+CloudClient.Builder = Builder;
+
+module.exports = { CloudClient };

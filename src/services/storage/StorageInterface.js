@@ -3,7 +3,7 @@ class StorageInterface {
    * Upload a file.
    * @param {string} filePath - The path to the file to upload.
    * @param {Buffer} fileContent - The content of the file.
-   * @returns {Promise<string>} - The URL of the uploaded file.
+   * @returns {Promise<void>} - The URL of the uploaded file.
    */
   async upload(filePath, fileContent) {
     throw new Error('Method not implemented');
@@ -12,9 +12,9 @@ class StorageInterface {
   /**
    * Retrieve a file.
    * @param {string} filePath - The path to the file to retrieve.
-   * @returns {Promise<Buffer>} - The content of the retrieved file.
+   * @returns {Promise<string>} - The URL of the retrieved file.
    */
-  async retrieve(filePath) {
+  retrieve(filePath) {
     throw new Error('Method not implemented');
   }
 
@@ -31,7 +31,7 @@ class StorageInterface {
    * Replace a file.
    * @param {string} filePath - The path to the file to replace.
    * @param {Buffer} fileContent - The new content of the file.
-   * @returns {Promise<string>} - The URL of the replaced file.
+   * @returns {Promise<void>}
    */
   async replace(filePath, fileContent) {
     throw new Error('Method not implemented');

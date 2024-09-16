@@ -12,19 +12,19 @@ class StorageClient {
    */
   static create(client, bucketName) {
     switch (client) {
-      case 'azure':
+      case 'AZURE':
         // Assuming AzureStorageService exists and implements StorageService
         // return new AzureStorageService();
         throw new Error('Azure storage service is not yet implemented');
-      case 'gcp':
+      case 'GCP':
         // Assuming GcpStorageService exists and implements StorageService
         // return new GcpStorageService();
         throw new Error('GCP storage service is not yet implemented');
-      case 'aws':
-        return AwsStorageService.getInstance(bucketName);
-      case 'minio':
+      case 'AWS':
+        return new AwsStorageService(bucketName);
+      case 'MINIO':
         // Assuming Minio would be handled similarly to AWS
-        return AwsStorageService.getInstance(bucketName);
+        return new AwsStorageService(bucketName);
       default:
         throw new Error('Unsupported service');
     }

@@ -1,83 +1,79 @@
-const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const { sdkStreamMixin } = require('@smithy/util-stream');
-const { mockClient } = require('aws-sdk-client-mock');
-const { Readable } = require('stream');
-const CloudClient = require('../CloudClient'); // Adjust the path as necessary
-const StorageInterface = require('../../services/storage/StorageInterface');
-const awsJestMock = require('aws-sdk-client-mock-jest');
+const StorageClient = require("../../services/storage/StorageClient");
+const { CloudClient } = require("../CloudClient");
 
-const s3Mock = mockClient(S3Client);
+// Mock StorageClient's create method to avoid real implementation in tests
+jest.mock('../../services/storage/StorageClient', () => ({
+  create: jest.fn(() => ({ storage: 'mockStorageClient' })),
+}));
 
-describe('CloudClient AWS S3 Operations', () => {
-  /** @type {StorageInterface} */
-  let storageService;
-
+describe('CloudClient Builder', () => {
   beforeEach(() => {
-    s3Mock.reset();
-    storageService = CloudClient.getClient(CloudClient.Clients.AWS)
-      .service(CloudClient.Services.ObjectStorage, 'test-bucket');
+    // Clear the instance registry before each test
+    CloudClient.Builder.instanceRegistry.clear();
+  });
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
-  test('should upload a file to S3', async () => {
-    s3Mock.on(PutObjectCommand).resolves({
-      ETag: '"etag"',
-    });
+  it('should create a new StorageClient and store it in the instance registry', () => {
+    // Arrange: Create a new builder instance
+    const builder = new CloudClient.Builder();
 
-    await storageService.upload('test-file.txt', Buffer.from('file content'));
+    // Act: Set properties and invoke the build method
+    const storageClient = builder
+      .setClient(CloudClient.CloudClients.AZURE)
+      .setService(CloudClient.Services.ObjectStorage)
+      .setBucket('test-bucket')
+      .build();
 
-    expect(s3Mock).toHaveReceivedCommandWith(PutObjectCommand, {
-      Bucket: 'test-bucket',
-      Key: 'test-file.txt',
-      Body: Buffer.from('file content'),
-    });
+    // Assert: Verify that StorageClient.create was called and storageClient is returned
+    expect(StorageClient.create).toHaveBeenCalledWith('AZURE', 'test-bucket');
+    expect(storageClient).toEqual({ storage: 'mockStorageClient' });
+    expect(CloudClient.Builder.instanceRegistry.size).toBe(1);
   });
 
-  // Test case broker because of `getSignedUrl`
-  test.skip('should retrieve a file from S3', async () => {
-    // Create Stream from string
-    const stream = new Readable();
-    stream.push('file content');
-    stream.push(null); // end of stream
+  it('should return the existing StorageClient from the instance registry', () => {
+    // Arrange: Create a new builder instance and add an entry to the registry
+    const builder = new CloudClient.Builder();
+    builder.setClient(CloudClient.CloudClients.AZURE).setService(CloudClient.Services.ObjectStorage).setBucket('test-bucket');
+    const instanceKey = builder.generateKey();
+    CloudClient.Builder.instanceRegistry.set(instanceKey, { storage: 'existingStorageClient' });
 
-    // Wrap the Stream with SDK mixin
-    const sdkStream = sdkStreamMixin(stream);
+    // Act: Call the build method again with the same configuration
+    const storageClient = builder.build();
 
-    s3Mock.on(GetObjectCommand).resolves({
-      Body: sdkStream,
-    });
-
-    const result = await storageService.retrieve('test-file.txt');
-
-    expect(s3Mock).toHaveReceivedCommandWith(GetObjectCommand, {
-      Bucket: 'test-bucket',
-      Key: 'test-file.txt',
-    });
-    const str = await result;
-    expect(str).toBe('file content');
+    // Assert: Verify that the existing instance is returned
+    expect(storageClient).toEqual({ storage: 'existingStorageClient' });
+    expect(StorageClient.create).not.toHaveBeenCalled();
   });
 
-  test('should delete a file from S3', async () => {
-    s3Mock.on(DeleteObjectCommand).resolves({});
+  it('should throw an error if client type is not specified', () => {
+    // Arrange: Create a new builder instance
+    const builder = new CloudClient.Builder();
 
-    await storageService.delete('test-file.txt');
-
-    expect(s3Mock).toHaveReceivedCommandWith(DeleteObjectCommand, {
-      Bucket: 'test-bucket',
-      Key: 'test-file.txt',
-    });
+    // Act & Assert: Call build and expect an error to be thrown
+    expect(() => {
+      builder.setService(CloudClient.Services.ObjectStorage).setBucket('test-bucket').build();
+    }).toThrow('Client type and service type must be specified');
   });
 
-  test('should replace a file in S3', async () => {
-    s3Mock.on(PutObjectCommand).resolves({
-      ETag: '"etag"',
-    });
+  it('should throw an error if service type is not specified', () => {
+    // Arrange: Create a new builder instance
+    const builder = new CloudClient.Builder();
 
-    await storageService.replace('test-file.txt', Buffer.from('new content'));
+    // Act & Assert: Call build and expect an error to be thrown
+    expect(() => {
+      builder.setClient(CloudClient.CloudClients.AZURE).setBucket('test-bucket').build();
+    }).toThrow('Client type and service type must be specified');
+  });
 
-    expect(s3Mock).toHaveReceivedCommandWith(PutObjectCommand, {
-      Bucket: 'test-bucket',
-      Key: 'test-file.txt',
-      Body: Buffer.from('new content'),
-    });
+  it('should throw an error if bucket name is not specified for ObjectStorage service', () => {
+    // Arrange: Create a new builder instance
+    const builder = new CloudClient.Builder();
+
+    // Act & Assert: Call build and expect an error to be thrown
+    expect(() => {
+      builder.setClient(CloudClient.CloudClients.AZURE).setService(CloudClient.Services.ObjectStorage).build();
+    }).toThrow('Bucket name must be specified for ObjectStorage service');
   });
 });

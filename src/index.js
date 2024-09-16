@@ -1,5 +1,3 @@
 const CloudClient = require('./client/CloudClient');
 
-module.exports = {
-  CloudClient,
-};
+module.exports = CloudClient;

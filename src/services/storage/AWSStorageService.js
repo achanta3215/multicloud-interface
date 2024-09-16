@@ -5,47 +5,35 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 class AwsStorageService extends ObjectStorage {
   /**
-   * Map to hold instances of AwsStorageService keyed by bucket name.
-   * @type {Map<string, AwsStorageService>}
-   */
-  static instances = new Map();
-
-  /**
    * @param {string} bucketName - The name of the S3 bucket.
    */
   constructor(bucketName) {
-    if (AwsStorageService.instances.has(bucketName)) {
-      throw new Error(`Instance already exists for bucket: ${bucketName}. Use AwsStorageService.getInstance() to get the existing instance.`);
-    }
     super();
     this.bucketName = bucketName;
+    // Create a new S3 client using AwsService
     this.s3 = new AwsService().getS3Instance();
-    AwsStorageService.instances.set(bucketName, this);
   }
 
   /**
-   * Gets the singleton instance of AwsStorageService for a specific bucket.
-   * If an instance does not exist for the given bucket, it creates one.
-   * @param {string} bucketName - The name of the S3 bucket.
-   * @returns {AwsStorageService} The instance of AwsStorageService for the given bucket.
+   * Upload a file to the S3 bucket.
+   * @param {string} filePath - The path in the S3 bucket where the file will be uploaded.
+   * @param {Buffer|string|Uint8Array|Blob} fileContent - The content of the file to upload.
    */
-  static getInstance(bucketName) {
-    if (!AwsStorageService.instances.has(bucketName)) {
-      AwsStorageService.instances.set(bucketName, new AwsStorageService(bucketName));
-    }
-    return AwsStorageService.instances.get(bucketName);
-  }
-
   async upload(filePath, fileContent) {
     const params = {
       Bucket: this.bucketName,
       Key: filePath,
       Body: fileContent,
     };
-    const command = new PutObjectCommand(params)
+    const command = new PutObjectCommand(params);
     await this.s3.send(command);
   }
- 
+
+  /**
+   * Retrieve a file from the S3 bucket with a signed URL.
+   * @param {string} filePath - The path of the file in the S3 bucket.
+   * @returns {Promise<string>} - A signed URL to access the file.
+   */
   async retrieve(filePath) {
     const params = {
       Bucket: this.bucketName,
@@ -56,6 +44,10 @@ class AwsStorageService extends ObjectStorage {
     return url;
   }
 
+  /**
+   * Delete a file from the S3 bucket.
+   * @param {string} filePath - The path of the file to delete in the S3 bucket.
+   */
   async delete(filePath) {
     const params = {
       Bucket: this.bucketName,
@@ -64,6 +56,11 @@ class AwsStorageService extends ObjectStorage {
     await this.s3.deleteObject(params);
   }
 
+  /**
+   * Replace a file in the S3 bucket by deleting the old file and uploading a new one.
+   * @param {string} filePath - The path of the file in the S3 bucket.
+   * @param {Buffer|string|Uint8Array|Blob} fileContent - The content of the new file.
+   */
   async replace(filePath, fileContent) {
     await this.delete(filePath);
     await this.upload(filePath, fileContent);
