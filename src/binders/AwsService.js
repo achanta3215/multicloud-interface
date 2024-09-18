@@ -32,7 +32,7 @@ class AwsService extends CloudService {
 
   /**
    * Creates and returns a new AWS S3 client instance.
-   * @param {string} endpoint - The endpoint.
+   * @param {string} [endpoint] - The endpoint.
    * @returns {S3} A new S3 client instance.
    * @throws {Error} If any required environment variable is missing.
    */

@@ -6,7 +6,7 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 class AwsStorageService extends ObjectStorage {
   /**
    * @param {string} bucketName - The name of the S3 bucket.
-   * @param {string} endpoint - The endpoint.
+   * @param {string} [endpoint] - The endpoint.
    */
   constructor(bucketName, endpoint) {
     super();

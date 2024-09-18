@@ -132,7 +132,7 @@ class Builder {
     }
 
     // Create a new instance and store it in the registry
-    if (this.properties.serviceType === CloudClient.Services.ObjectStorage && this.properties.bucketName && this.properties.endpoint) {
+    if (this.properties.serviceType === CloudClient.Services.ObjectStorage && this.properties.bucketName) {
       const newClient = StorageClient.create(this.properties.clientType, this.properties.bucketName, this.properties.endpoint);
       Builder.instanceRegistry.set(instanceKey, newClient);
       return newClient;
