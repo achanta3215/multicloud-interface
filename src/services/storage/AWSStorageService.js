@@ -6,10 +6,12 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 class AwsStorageService extends ObjectStorage {
   /**
    * @param {string} bucketName - The name of the S3 bucket.
+   * @param {string} endpoint - The endpoint.
    */
-  constructor(bucketName) {
+  constructor(bucketName, endpoint) {
     super();
     this.bucketName = bucketName;
+    this.endpoint = endpoint;
     // Create a new S3 client using AwsService
     this.s3 = new AwsService().getS3Instance();
   }

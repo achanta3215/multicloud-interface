@@ -32,10 +32,11 @@ class AwsService extends CloudService {
 
   /**
    * Creates and returns a new AWS S3 client instance.
+   * @param {string} endpoint - The endpoint.
    * @returns {S3} A new S3 client instance.
    * @throws {Error} If any required environment variable is missing.
    */
-  getS3Instance() {
+  getS3Instance(endpoint) {
     this.validateAwsEnvVars();
 
     return new S3({
@@ -43,7 +44,7 @@ class AwsService extends CloudService {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
       },
-      endpoint: process.env.AWS_S3_ENDPOINT,
+      endpoint: endpoint,
       region: process.env.AWS_REGION,
     });
   }

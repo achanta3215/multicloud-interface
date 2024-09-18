@@ -42,6 +42,7 @@ class Builder {
      * @property {keyof typeof CloudClient.CloudClients} [clientType] - The cloud client type.
      * @property {keyof typeof CloudClient.Services} [serviceType] - The cloud service type.
      * @property {string} [bucketName] - The bucket name.
+     * @property {string} [endpoint] - The endpoint name.
      */
     /** @type {BuilderProperties} */
     this.properties = {};
@@ -80,6 +81,16 @@ class Builder {
    */
   setBucket(bucketName) {
     this.properties.bucketName = bucketName;
+    return this;
+  }
+
+  /**
+   * Sets the bucket name for object storage.
+   * @param {string} endpoint - The bucket name.
+   * @returns {Builder} - Returns the Builder instance for chaining.
+   */
+  setEndpoint(endpoint) {
+    this.properties.endpoint = endpoint;
     return this;
   }
 
