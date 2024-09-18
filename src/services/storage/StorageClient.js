@@ -1,4 +1,5 @@
 const AwsStorageService = require('./AWSStorageService.js');
+const MinioStorageService = require('./MinioStorageService.js');
 const StorageInterface = require('./StorageInterface.js');
 
 class StorageClient {
@@ -24,8 +25,7 @@ class StorageClient {
       case 'AWS':
         return new AwsStorageService(bucketName, endpoint);
       case 'MINIO':
-        // Assuming Minio would be handled similarly to AWS
-        return new AwsStorageService(bucketName, endpoint);
+        return new MinioStorageService(bucketName, endpoint);
       default:
         throw new Error('Unsupported service');
     }
