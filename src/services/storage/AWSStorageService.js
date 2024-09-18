@@ -13,7 +13,7 @@ class AwsStorageService extends ObjectStorage {
     this.bucketName = bucketName;
     this.endpoint = endpoint;
     // Create a new S3 client using AwsService
-    this.s3 = new AwsService().getS3Instance();
+    this.s3 = new AwsService().getS3Instance(endpoint);
   }
 
   /**
