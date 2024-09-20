@@ -144,4 +144,4 @@ class Builder {
 
 CloudClient.Builder = Builder;
 
-module.exports = { CloudClient };
+module.exports = CloudClient;

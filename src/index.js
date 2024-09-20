@@ -1,3 +1,4 @@
 const CloudClient = require('./client/CloudClient');
+const StorageInterface = require('./services/storage/StorageInterface');
 
-module.exports = CloudClient;
+module.exports = { CloudClient, StorageInterface };

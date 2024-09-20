@@ -1,5 +1,5 @@
 
-const { CloudClient } = require('../../client/CloudClient.js');
+const CloudClient = require('../../client/CloudClient.js');
 const AwsStorageService = require('./AWSStorageService.js');
 
 /**

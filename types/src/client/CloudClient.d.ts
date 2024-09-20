@@ -1,7 +1,8 @@
+export = CloudClient;
 /**
  * CloudClient class representing cloud providers.
  */
-export class CloudClient {
+declare class CloudClient {
     /**
      * Cloud client types.
      * @type {{ AZURE: 'AZURE', AWS: 'AWS', GCP: 'GCP', MINIO: 'MINIO' }}
@@ -25,7 +26,7 @@ export class CloudClient {
     constructor(clientType: keyof typeof CloudClient.CloudClients);
     clientType: "AWS" | "GCP" | "AZURE" | "MINIO";
 }
-export namespace CloudClient {
+declare namespace CloudClient {
     export { Builder };
 }
 /**
@@ -100,4 +101,3 @@ declare class Builder {
     build(): StorageInterface;
 }
 import StorageInterface = require("../services/storage/StorageInterface");
-export {};
